@@ -110,6 +110,50 @@ export default function ReportPreview() {
     }
   };
 
+  // Fungsi baru: buka report sebagai HTML vektor untuk cetak (teks tetap teks)
+  const handlePrintHTML = () => {
+    if (!reportRef.current) return;
+
+    const reportHTML = reportRef.current.innerHTML;
+
+    // Minimal inline style khusus untuk window print supaya layout konsisten
+    const printStyles = `
+      body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; margin: 0; color: #000; }
+      .print-report { padding: 15mm; background: #fff; color: #000; }
+      .print-report h1, .print-report h2, .print-report h3, .print-report h4 { color: #000; }
+      .kop-rapor { text-align: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 3px double #000; }
+      table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10pt; }
+      col.no-col { width:5%; }
+      col.subject-col { width:45%; }
+      col.grade-col { width:15%; }
+      col.competency-col { width:35%; }
+      th, td { border: 1px solid #000; padding: 6px 6px; vertical-align: top; word-break: break-word; }
+      th { background: #f0f0f0; text-align: center; font-weight: 600; }
+      .student-info { display: block; margin-bottom: 8px; }
+      .student-info .row { display:flex; justify-content:space-between; }
+      .attendance_tbl td:first-child { width: 35%; font-weight: 600; }
+      @page { size: A4; margin: 15mm; }
+      @media print { button { display: none; } }
+    `;
+
+    const newWindow = window.open('', '_blank');
+    if (!newWindow) return;
+
+    newWindow.document.write(`
+      <html>
+        <head>
+          <title>Preview Rapor - Print</title>
+          <style>${printStyles}</style>
+        </head>
+        <body>
+          <div class="print-report">${reportHTML}</div>
+          <script>window.onload = function(){ setTimeout(()=>window.print(), 200); };</script>
+        </body>
+      </html>
+    `);
+    newWindow.document.close();
+  };
+
   const kelasList = [...new Set(students.map((s) => s.kelas))];
   const filteredStudents = students.filter((s) => s.kelas === selectedKelas);
   const currentStudent = students.find((s) => s.id === selectedStudent);
@@ -271,6 +315,10 @@ export default function ReportPreview() {
           </div>
           {selectedStudent && (
             <>
+              <Button onClick={handlePrintHTML} className="mr-2">
+                <Printer className="mr-2 h-4 w-4" />
+                Cetak (HTML)
+              </Button>
               <Button onClick={handleOpenPDF} className="mr-2">
                 <Printer className="mr-2 h-4 w-4" />
                 Cetak Rapor (PDF)
@@ -365,52 +413,59 @@ export default function ReportPreview() {
                 </div>
 
                 {/* Title */}
-                <div className="text-center mb-4">
-                  <h3 className="text-base font-bold uppercase m-0">
+                <div style={{textAlign: 'center', marginBottom: '24px', margin: '0 auto 24px auto'}}>
+                  <h3 style={{fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 8px 0'}}>
                     Laporan Hasil Belajar Peserta Didik
                   </h3>
-                  <p className="text-xs m-0">
-                    Semester {schoolSettings?.semester === "1" ? "Ganjil" : "Genap"}{" "}
-                    Tahun Pelajaran {schoolSettings?.tahun_pelajaran}
+                  <p style={{fontSize: '14px', margin: '0'}}>
+                    Semester {schoolSettings?.semester === "1" ? "Ganjil" : "Genap"} Tahun Pelajaran {schoolSettings?.tahun_pelajaran || '2024/2025'}
                   </p>
                 </div>
 
-                {/* Student Info */}
-                <div className="grid grid-cols-2 text-sm mb-4">
-                  <div className="flex mb-1">
-                    <span className="w-40">Nama Peserta Didik</span>
-                    <span>: {currentStudent.nama_lengkap}</span>
-                  </div>
-                  <div className="flex mb-1">
-                    <span className="w-40">Nomor Induk</span>
-                    <span>: {currentStudent.nis}</span>
-                  </div>
-                  <div className="flex mb-1">
-                    <span className="w-40">Tempat, Tanggal Lahir</span>
-                    <span>
-                      : {currentStudent.tempat_lahir || "-"},{" "}
-                      {currentStudent.tanggal_lahir
-                        ? new Date(currentStudent.tanggal_lahir).toLocaleDateString("id-ID")
-                        : "-"}
-                    </span>
-                  </div>
-                  <div className="flex mb-1">
-                    <span className="w-40">Kelas</span>
-                    <span>: {currentStudent.kelas}</span>
-                  </div>
-                </div>
+                {/* Student Info - borderless table */}
+                <table className="borderless-table w-full mb-4" style={{border: 'none', borderCollapse: 'collapse'}}>
+                  <tbody>
+                    <tr>
+                      <td style={{width: '180px', border: 'none', padding: '4px 0'}}>Nama Peserta Didik</td>
+                      <td style={{border: 'none', padding: '4px 0'}}>: {currentStudent.nama_lengkap}</td>
+                    </tr>
+                    <tr>
+                      <td style={{border: 'none', padding: '4px 0'}}>Nomor Induk</td>
+                      <td style={{border: 'none', padding: '4px 0'}}>: {currentStudent.nis}</td>
+                    </tr>
+                    <tr>
+                      <td style={{border: 'none', padding: '4px 0'}}>Tempat, Tanggal Lahir</td>
+                      <td style={{border: 'none', padding: '4px 0'}}>:
+                        {` ${currentStudent.tempat_lahir || '-'}, `}
+                        {currentStudent.tanggal_lahir
+                          ? `${new Date(currentStudent.tanggal_lahir).getDate()}/${new Date(currentStudent.tanggal_lahir).getMonth() + 1}/${new Date(currentStudent.tanggal_lahir).getFullYear()}`
+                          : '-'}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{border: 'none', padding: '4px 0'}}>Kelas</td>
+                      <td style={{border: 'none', padding: '4px 0'}}>: {currentStudent.kelas}</td>
+                    </tr>
+                  </tbody>
+                </table>
 
                 {/* Grades Header */}
                 <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>A. Nilai Akademik</h4>
 
                 {/* Grades Table */}
-                <table className="w-full border border-gray-300 border-collapse mb-4">
+                <table className="grades_tbl w-full border border-gray-300 border-collapse mb-4">
+                  <colgroup>
+                    <col className="no-col" />
+                    <col className="subject-col" />
+                    <col className="grade-col" />
+                    <col className="competency-col" />
+                  </colgroup>
                   <thead>
                     <tr className="bg-gray-100">
-                      <th className="border border-gray-300 p-2 text-center" style={{width: '5%'}}>No</th>
-                      <th className="border border-gray-300 p-2" style={{width: '55%'}}>Mata Pelajaran</th>
-                      <th className="border border-gray-300 p-2 text-center" style={{width: '15%'}}>Nilai</th>
-                      <th className="border border-gray-300 p-2" style={{width: '25%'}}>Capaian Kompetensi</th>
+                      <th className="border border-gray-300 p-2 text-center no-col">No</th>
+                      <th className="border border-gray-300 p-2 subject-col">Mata Pelajaran</th>
+                      <th className="border border-gray-300 p-2 text-center grade-col">Nilai</th>
+                      <th className="border border-gray-300 p-2 competency-col">Capaian Kompetensi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -418,12 +473,12 @@ export default function ReportPreview() {
                       const grade = studentGrades.find((g) => g.subject_id === subject.id);
                       return (
                         <tr key={subject.id}>
-                          <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
-                          <td className="border border-gray-300 p-2">{subject.nama}</td>
-                          <td className="border border-gray-300 p-2 text-center font-medium">
+                          <td className="border border-gray-300 p-2 text-center no-col">{index + 1}</td>
+                          <td className="border border-gray-300 p-2 subject-col">{subject.nama}</td>
+                          <td className="border border-gray-300 p-2 text-center font-medium grade-col">
                             {grade?.nilai_akhir || "-"}
                           </td>
-                          <td className="border border-gray-300 p-2">
+                          <td className="border border-gray-300 p-2 competency-col">
                             {grade?.capaian_kompetensi || "-"}
                           </td>
                         </tr>
@@ -432,52 +487,106 @@ export default function ReportPreview() {
                   </tbody>
                 </table>
 
-                {/* Attendance */}
+                {/* Attendance (vertical layout) */}
                 <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>B. Ketidakhadiran</h4>
-                <table className="w-full border border-gray-300 border-collapse mb-8">
+                <table className="attendance_tbl w-full border border-gray-300 border-collapse mb-8">
                   <tbody>
                     <tr>
-                      <td className="border border-gray-300 p-2 w-1/4">Sakit</td>
-                      <td className="border border-gray-300 p-2 w-1/4">{studentAttendance?.sakit || 0} hari</td>
-                      <td className="border border-gray-300 p-2 w-1/4">Izin</td>
-                      <td className="border border-gray-300 p-2 w-1/4">{studentAttendance?.izin || 0} hari</td>
+                      <td className="border border-gray-300 p-2">Sakit</td>
+                      <td className="border border-gray-300 p-2">{studentAttendance?.sakit || 0} hari</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 p-2">Izin</td>
+                      <td className="border border-gray-300 p-2">{studentAttendance?.izin || 0} hari</td>
                     </tr>
                     <tr>
                       <td className="border border-gray-300 p-2">Tanpa Keterangan</td>
                       <td className="border border-gray-300 p-2">{studentAttendance?.tanpa_keterangan || 0} hari</td>
-                      <td className="border border-gray-300 p-2"></td>
-                      <td className="border border-gray-300 p-2"></td>
                     </tr>
                   </tbody>
                 </table>
 
-                {/* Signatures */}
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="text-center">
-                    <p className="mb-8">Mengetahui,</p>
-                    <p className="mb-8">Orang Tua/Wali</p>
-                    <p className="border-b border-gray-800" style={{width: '70%', margin: 'auto'}}></p>
-                  </div>
-                  <div className="text-center">
-                    <p className="mb-1">
-                      Jakarta,{" "}
-                      {new Date().toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </p>
-                    <p className="mb-8">Wali Kelas</p>
-                    <p className="font-medium">{currentStudent.nama_wali_kelas || "-"}</p>
-                  </div>
+                {/* C. Ekstrakurikuler */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>C. Ekstrakurikuler</h4>
+                <table className="w-full border border-gray-300 border-collapse mb-4">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-center" style={{width: '5%'}}>No</th>
+                      <th className="border border-gray-300 p-2" style={{width: '40%'}}>Kegiatan Ekstrakurikuler</th>
+                      <th className="border border-gray-300 p-2" style={{width: '30%'}}>Predikat</th>
+                      <th className="border border-gray-300 p-2" style={{width: '25%'}}>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 p-2 text-center" colSpan={4} style={{height: '40px'}}>-</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* D. Prestasi */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>D. Prestasi</h4>
+                <table className="w-full border border-gray-300 border-collapse mb-4">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-center" style={{width: '5%'}}>No</th>
+                      <th className="border border-gray-300 p-2" style={{width: '40%'}}>Jenis Prestasi</th>
+                      <th className="border border-gray-300 p-2" style={{width: '30%'}}>Tingkat</th>
+                      <th className="border border-gray-300 p-2" style={{width: '25%'}}>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 p-2 text-center" colSpan={4} style={{height: '40px'}}>-</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* F. Catatan Wali Kelas */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>F. Catatan Wali Kelas</h4>
+                <div style={{border: '1px solid #333', padding: '12px', minHeight: '80px', marginBottom: '16px'}}>
+                  {/* Space untuk catatan */}
                 </div>
 
-                <div className="text-center mt-12">
-                  <p className="mb-2">Mengetahui,</p>
-                  <p className="mb-8">Kepala Sekolah</p>
-                  <p className="font-medium">{schoolSettings?.nama_kepala_sekolah}</p>
-                  <p className="text-sm">NIP. {schoolSettings?.nip_kepala_sekolah}</p>
+                {/* G. Tanggapan Orang Tua/Wali */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>G. Tanggapan Orang Tua/Wali</h4>
+                <div style={{border: '1px solid #333', padding: '12px', minHeight: '80px', marginBottom: '24px'}}>
+                  {/* Space untuk tanggapan */}
                 </div>
+
+                {/* Signatures - borderless three-column table */}
+                <div style={{marginBottom: '16px'}}></div>
+                <div style={{marginBottom: '16px'}}></div>
+                <table className="borderless-table w-full mt-8">
+                  <tbody>
+                    <tr>
+                      <td style={{width: '33%', textAlign: 'center', border: 'none', padding: '0'}}>
+                        <div style={{marginBottom: '8px'}}>Mengetahui,</div>
+                        <div style={{marginBottom: '60px'}}>Orang Tua/Wali</div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{borderBottom: '1px solid #000', width: '70%', margin: '0 auto', height: '20px'}}></div>
+                      </td>
+                      <td style={{width: '33%', textAlign: 'center', border: 'none', padding: '0'}}>
+                        <div style={{marginBottom: '8px'}}>Jakarta, 3 Desember 2025</div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{marginBottom: '8px'}}>Wali Kelas</div>
+                        <div style={{marginBottom: '60px'}}></div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div>Bu Siti Aminah</div>
+                      </td>
+                      <td style={{width: '33%', textAlign: 'center', border: 'none', padding: '0'}}>
+                        <div style={{marginBottom: '8px'}}>Mengetahui,</div>
+                        <div style={{marginBottom: '60px'}}>Kepala Sekolah</div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{marginBottom: '8px'}}></div>
+                        <div style={{marginBottom: '8px'}}>Dr. Budi Santoso, M.Pd</div>
+                        <div className="text-sm">NIP. 196501011990011001</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 py-16 no-print">

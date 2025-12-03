@@ -260,7 +260,7 @@
     color: black !important;
     background: transparent !important;
     visibility: visible !important;
-    display: block !important;
+    /* Do not force display:block for all elements; it breaks table layout */
   }
 
   .print-report h1,
@@ -323,6 +323,22 @@
     page-break-inside: auto !important;
   }
 
+  /* Borderless table helper (for student info and signatures) */
+  .print-report .borderless-table,
+  .borderless-table {
+    border: none !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 0 0 8px 0 !important;
+  }
+
+  .print-report .borderless-table td,
+  .borderless-table td {
+    border: none !important;
+    padding: 0 !important;
+    vertical-align: top !important;
+  }
+
   .print-report thead {
     display: table-header-group !important;
   }
@@ -357,152 +373,87 @@
   }
 
   /* Specific column width for grades table */
-  .print-report .grades-table {
+  .print-report .grades_tbl {
     table-layout: fixed !important;
     width: 100% !important;
     border-collapse: collapse !important;
   }
 
-  .print-report .grades-table .no-col {
+  .print-report .grades_tbl .no-col {
     width: 5% !important;
     text-align: center !important;
     max-width: 5% !important;
   }
 
-  .print-report .grades-table .subject-col {
+  .print-report .grades_tbl .subject-col {
     width: 45% !important;
     text-align: left !important;
     max-width: 45% !important;
   }
 
-  .print-report .grades-table .grade-col {
+  .print-report .grades_tbl .grade-col {
     width: 15% !important;
     text-align: center !important;
     max-width: 15% !important;
   }
 
-  .print-report .grades-table .competency-col {
+  .print-report .grades_tbl .competency-col {
     width: 35% !important;
     text-align: left !important;
     max-width: 35% !important;
   }
 
-  .print-report .grades-table th,
-  .print-report .grades-table td {
+  .print-report .grades_tbl th,
+  .print-report .grades_tbl td {
     padding: 8px 4px !important;
     border: 1px solid black !important;
   }
 
-  .print-report .grades-table th.no-col,
-  .print-report .grades-table td.no-col {
+  .print-report .grades_tbl th.no-col,
+  .print-report .grades_tbl td.no-col {
     text-align: center !important;
   }
 
-  .print-report .grades-table th.grade-col,
-  .print-report .grades-table td.grade-col {
+  .print-report .grades_tbl th.grade-col,
+  .print-report .grades_tbl td.grade-col {
     text-align: center !important;
   }
 
   /* Specific overrides for print mode to ensure table structure */
-  @media print {
-    .print-report .grades-table {
-      table-layout: fixed !important;
-      width: 100% !important;
-      border-collapse: collapse !important;
-    }
+  .print-report .grades_tbl {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
 
-    .print-report .grades-table th,
-    .print-report .grades-table td {
-      display: table-cell !important;
-      border: 1px solid black !important;
-      padding: 8px 4px !important;
-      overflow: hidden !important;
-      word-wrap: break-word !important;
-    }
+  .print-report .grades_tbl th,
+  .print-report .grades_tbl td {
+    display: table-cell !important;
+    vertical-align: top !important;
+    border: 1px solid black !important;
+    padding: 8px 6px !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
 
-    .print-report .grades-table .no-col,
-    .print-report .grades-table th.no-col,
-    .print-report .grades-table td.no-col {
-      width: 5% !important;
-      max-width: 5% !important;
-    }
+  /* Attendance table - vertical layout */
+  .print-report .attendance_tbl {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
 
-    .print-report .grades-table .subject-col,
-    .print-report .grades-table th.subject-col,
-    .print-report .grades-table td.subject-col {
-      width: 45% !important;
-      max-width: 45% !important;
-    }
+  .print-report .attendance_tbl td {
+    padding: 8px 6px !important;
+    border: 1px solid black !important;
+    vertical-align: top !important;
+    word-break: break-word !important;
+  }
 
-    .print-report .grades-table .grade-col,
-    .print-report .grades-table th.grade-col,
-    .print-report .grades-table td.grade-col {
-      width: 15% !important;
-      max-width: 15% !important;
-    }
-
-    .print-report .grades-table .competency-col,
-    .print-report .grades-table th.competency-col,
-    .print-report .grades-table td.competency-col {
-      width: 35% !important;
-      max-width: 35% !important;
-    }
-
-    /* Additional print styles for all tables in print report */
-    .print-report table,
-    .print-report table tr,
-    .print-report table td,
-    .print-report table th {
-      display: table !important;
-      border-collapse: collapse !important;
-      width: 100% !important;
-      background: white !important;
-    }
-
-    .print-report .student-info table {
-      table-layout: fixed !important;
-      width: 100% !important;
-    }
-
-    .print-report .student-info table td {
-      border: none !important;
-      padding: 2px 4px !important;
-      vertical-align: top !important;
-    }
-
-    .print-report .student-info table tr:nth-child(1) td:nth-child(1),
-    .print-report .student-info table tr:nth-child(1) td:nth-child(3) {
-      width: 15% !important;
-    }
-
-    .print-report .student-info table tr:nth-child(1) td:nth-child(2),
-    .print-report .student-info table tr:nth-child(1) td:nth-child(4) {
-      width: 35% !important;
-    }
-
-    .print-report .student-info table tr:nth-child(2) td:nth-child(1),
-    .print-report .student-info table tr:nth-child(2) td:nth-child(3) {
-      width: 15% !important;
-    }
-
-    .print-report .student-info table tr:nth-child(2) td:nth-child(2),
-    .print-report .student-info table tr:nth-child(2) td:nth-child(4) {
-      width: 35% !important;
-    }
-
-    /* Signature table styles for print */
-    .print-report .signatures table {
-      width: 100% !important;
-      border-collapse: collapse !important;
-    }
-
-    .print-report .signatures table td {
-      width: 50% !important;
-      text-align: center !important;
-      vertical-align: top !important;
-      border: none !important;
-      padding: 0 !important;
-    }
+  /* Ensure table cells render correctly (override aggressive selectors) */
+  .print-report table th,
+  .print-report table td {
+    display: table-cell !important;
+    vertical-align: top !important;
   }
 
   /* Attendance styling */
