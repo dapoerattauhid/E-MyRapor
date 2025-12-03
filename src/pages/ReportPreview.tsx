@@ -67,7 +67,7 @@ export default function ReportPreview() {
     <MainLayout>
       <div className="animate-slide-in">
         {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between no-print">
           <div>
             <h1 className="text-2xl font-bold lg:text-3xl">Preview Rapor</h1>
             <p className="mt-1 text-muted-foreground">
@@ -83,7 +83,7 @@ export default function ReportPreview() {
         </div>
 
         {/* Selection */}
-        <div className="mb-6 rounded-xl border border-border bg-card p-6">
+        <div className="mb-6 rounded-xl border border-border bg-card p-6 no-print">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Kelas</Label>
@@ -126,7 +126,7 @@ export default function ReportPreview() {
         {selectedStudent && currentStudent && (
           <div
             ref={reportRef}
-            className="rounded-xl border border-border bg-card p-8 animate-fade-in print:border-none print:p-0"
+            className="print-report rounded-xl border border-border bg-card p-8 animate-fade-in"
           >
             {/* Kop Rapor */}
             <div className="mb-8 border-b-2 border-foreground pb-4 text-center">
@@ -265,7 +265,7 @@ export default function ReportPreview() {
         )}
 
         {!selectedStudent && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 py-16">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 py-16 no-print">
             <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-muted-foreground">
               Pilih kelas dan siswa untuk melihat preview rapor

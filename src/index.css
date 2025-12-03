@@ -211,3 +211,68 @@
     }
   }
 }
+
+/* Print styles for report */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide everything except report */
+  .no-print,
+  nav,
+  aside,
+  header,
+  button,
+  [data-sidebar],
+  .sidebar {
+    display: none !important;
+  }
+
+  /* Report container styles */
+  .print-report {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    color: black !important;
+    padding: 20mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .print-report * {
+    color: black !important;
+    background: transparent !important;
+  }
+
+  .print-report table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .print-report th,
+  .print-report td {
+    border: 1px solid black !important;
+    padding: 8px !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .print-report th {
+    background: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}
