@@ -49,6 +49,18 @@ export default function ReportPreview() {
       a.tahun_pelajaran === schoolSettings?.tahun_pelajaran
   );
 
+  // Debug logs
+  console.log("=== ReportPreview Debug ===");
+  console.log("students:", students.length, students);
+  console.log("selectedKelas:", selectedKelas);
+  console.log("selectedStudent:", selectedStudent);
+  console.log("currentStudent:", currentStudent);
+  console.log("schoolSettings:", schoolSettings);
+  console.log("grades:", grades.length);
+  console.log("studentGrades:", studentGrades.length, studentGrades);
+  console.log("subjects:", subjects.length);
+  console.log("Render condition:", selectedStudent && currentStudent);
+
   const handlePrint = () => {
     window.print();
   };
@@ -120,6 +132,24 @@ export default function ReportPreview() {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Debug Section - TEMPORARY */}
+        <div className="mb-6 rounded-xl border border-yellow-500 bg-yellow-50 p-4 text-sm no-print">
+          <h4 className="font-bold text-yellow-800 mb-2">Debug Info:</h4>
+          <ul className="space-y-1 text-yellow-700">
+            <li>Students loaded: {students.length}</li>
+            <li>Kelas list: {kelasList.join(", ") || "none"}</li>
+            <li>Selected kelas: {selectedKelas || "none"}</li>
+            <li>Filtered students: {filteredStudents.length}</li>
+            <li>Selected student ID: {selectedStudent || "none"}</li>
+            <li>Current student found: {currentStudent ? currentStudent.nama_lengkap : "NOT FOUND"}</li>
+            <li>School settings: {schoolSettings ? "loaded" : "NOT LOADED"}</li>
+            <li>Grades loaded: {grades.length}</li>
+            <li>Student grades: {studentGrades.length}</li>
+            <li>Subjects: {subjects.length}</li>
+            <li>Render condition: {String(Boolean(selectedStudent && currentStudent))}</li>
+          </ul>
         </div>
 
         {/* Report Preview */}
