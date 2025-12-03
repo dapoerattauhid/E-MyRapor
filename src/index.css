@@ -235,44 +235,330 @@
   /* Report container styles */
   .print-report {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: none !important;
     background: white !important;
     color: black !important;
-    padding: 20mm !important;
+    padding: 20mm 15mm !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    z-index: 9999 !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
   }
 
   .print-report * {
     color: black !important;
     background: transparent !important;
+    visibility: visible !important;
+    display: block !important;
   }
 
+  .print-report h1,
+  .print-report h2,
+  .print-report h3,
+  .print-report h4 {
+    margin: 8px 0 !important;
+    color: black !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-report h1 {
+    font-size: 16pt !important;
+    margin-bottom: 16px !important;
+  }
+
+  .print-report h2 {
+    font-size: 14pt !important;
+    margin-bottom: 12px !important;
+  }
+
+  .print-report h3 {
+    font-size: 13pt !important;
+  }
+
+  .print-report p {
+    margin: 5px 0 !important;
+    color: black !important;
+  }
+
+  /* Kop Rapor styling */
+  .print-report .kop-rapor {
+    border-bottom: 3px double black !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .print-report .kop-rapor h2 {
+    font-size: 14pt !important;
+    margin-bottom: 4px !important;
+  }
+
+  .print-report .kop-rapor p {
+    font-size: 10pt !important;
+  }
+
+  /* Student info styling */
+  .print-report .student-info div {
+    margin: 3px 0 !important;
+    font-size: 11pt !important;
+  }
+
+  /* Table styling */
   .print-report table {
-    border-collapse: collapse;
-    width: 100%;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+    font-size: 10pt !important;
+    page-break-inside: auto !important;
+  }
+
+  .print-report thead {
+    display: table-header-group !important;
+  }
+
+  .print-report tfoot {
+    display: table-row-group !important;
+  }
+
+  .print-report tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
   }
 
   .print-report th,
   .print-report td {
     border: 1px solid black !important;
-    padding: 8px !important;
+    padding: 6px 4px !important;
     background: white !important;
     color: black !important;
+    visibility: visible !important;
+    text-align: left !important;
   }
 
   .print-report th {
     background: #f0f0f0 !important;
-    font-weight: bold;
+    font-weight: bold !important;
+    text-align: center !important;
+  }
+
+  .print-report th.text-center {
+    text-align: center !important;
+  }
+
+  /* Specific column width for grades table */
+  .print-report .grades-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .print-report .grades-table .no-col {
+    width: 5% !important;
+    text-align: center !important;
+    max-width: 5% !important;
+  }
+
+  .print-report .grades-table .subject-col {
+    width: 45% !important;
+    text-align: left !important;
+    max-width: 45% !important;
+  }
+
+  .print-report .grades-table .grade-col {
+    width: 15% !important;
+    text-align: center !important;
+    max-width: 15% !important;
+  }
+
+  .print-report .grades-table .competency-col {
+    width: 35% !important;
+    text-align: left !important;
+    max-width: 35% !important;
+  }
+
+  .print-report .grades-table th,
+  .print-report .grades-table td {
+    padding: 8px 4px !important;
+    border: 1px solid black !important;
+  }
+
+  .print-report .grades-table th.no-col,
+  .print-report .grades-table td.no-col {
+    text-align: center !important;
+  }
+
+  .print-report .grades-table th.grade-col,
+  .print-report .grades-table td.grade-col {
+    text-align: center !important;
+  }
+
+  /* Specific overrides for print mode to ensure table structure */
+  @media print {
+    .print-report .grades-table {
+      table-layout: fixed !important;
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+
+    .print-report .grades-table th,
+    .print-report .grades-table td {
+      display: table-cell !important;
+      border: 1px solid black !important;
+      padding: 8px 4px !important;
+      overflow: hidden !important;
+      word-wrap: break-word !important;
+    }
+
+    .print-report .grades-table .no-col,
+    .print-report .grades-table th.no-col,
+    .print-report .grades-table td.no-col {
+      width: 5% !important;
+      max-width: 5% !important;
+    }
+
+    .print-report .grades-table .subject-col,
+    .print-report .grades-table th.subject-col,
+    .print-report .grades-table td.subject-col {
+      width: 45% !important;
+      max-width: 45% !important;
+    }
+
+    .print-report .grades-table .grade-col,
+    .print-report .grades-table th.grade-col,
+    .print-report .grades-table td.grade-col {
+      width: 15% !important;
+      max-width: 15% !important;
+    }
+
+    .print-report .grades-table .competency-col,
+    .print-report .grades-table th.competency-col,
+    .print-report .grades-table td.competency-col {
+      width: 35% !important;
+      max-width: 35% !important;
+    }
+
+    /* Additional print styles for all tables in print report */
+    .print-report table,
+    .print-report table tr,
+    .print-report table td,
+    .print-report table th {
+      display: table !important;
+      border-collapse: collapse !important;
+      width: 100% !important;
+      background: white !important;
+    }
+
+    .print-report .student-info table {
+      table-layout: fixed !important;
+      width: 100% !important;
+    }
+
+    .print-report .student-info table td {
+      border: none !important;
+      padding: 2px 4px !important;
+      vertical-align: top !important;
+    }
+
+    .print-report .student-info table tr:nth-child(1) td:nth-child(1),
+    .print-report .student-info table tr:nth-child(1) td:nth-child(3) {
+      width: 15% !important;
+    }
+
+    .print-report .student-info table tr:nth-child(1) td:nth-child(2),
+    .print-report .student-info table tr:nth-child(1) td:nth-child(4) {
+      width: 35% !important;
+    }
+
+    .print-report .student-info table tr:nth-child(2) td:nth-child(1),
+    .print-report .student-info table tr:nth-child(2) td:nth-child(3) {
+      width: 15% !important;
+    }
+
+    .print-report .student-info table tr:nth-child(2) td:nth-child(2),
+    .print-report .student-info table tr:nth-child(2) td:nth-child(4) {
+      width: 35% !important;
+    }
+
+    /* Signature table styles for print */
+    .print-report .signatures table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+
+    .print-report .signatures table td {
+      width: 50% !important;
+      text-align: center !important;
+      vertical-align: top !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+  }
+
+  /* Attendance styling */
+  .print-report .attendance-grid {
+    display: table !important;
+    width: 100% !important;
+    margin: 10px 0 !important;
+  }
+
+  .print-report .attendance-item {
+    display: table-cell !important;
+    padding: 8px !important;
+    border: 1px solid black !important;
+    vertical-align: top !important;
+  }
+
+  /* Signatures styling */
+  .print-report .signatures {
+    margin-top: 40px !important;
+    page-break-before: avoid !important;
+  }
+
+  .print-report .signature-box {
+    text-align: center !important;
+    margin-top: 20px !important;
+  }
+
+  .print-report .signature-line {
+    width: 70% !important;
+    margin: 40px auto 0 !important;
+    border-top: 1px solid black !important;
+  }
+
+  /* Remove animations and transitions for print */
+  .print-report .animate-fade-in,
+  .print-report .animate-slide-in,
+  .print-report .animate-scale-in {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  /* Specifically handle shadcn/ui table wrapper */
+  .print-report > div.relative.w-full.overflow-auto {
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .print-report [class*="table"] > *,
+  .print-report [class*="table"] * {
+    visibility: visible !important;
+    display: table-row !important;
   }
 
   /* Page setup */
   @page {
     size: A4;
-    margin: 15mm;
+    margin: 20mm; /* Meningkatkan margin untuk cetak */
   }
 }

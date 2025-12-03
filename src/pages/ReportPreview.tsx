@@ -18,7 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FileText, Printer, Loader2 } from "lucide-react";
+import { FileText, Printer, Download, Loader2 } from "lucide-react";
+
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function ReportPreview() {
   const { data: students = [], isLoading } = useStudents();
@@ -26,10 +29,86 @@ export default function ReportPreview() {
   const { data: attendance = [] } = useAttendance();
   const { data: subjects = [] } = useSubjects();
   const { data: schoolSettings } = useSchoolSettings();
-  
+
   const [selectedKelas, setSelectedKelas] = useState<string>("");
   const [selectedStudent, setSelectedStudent] = useState<string>("");
   const reportRef = useRef<HTMLDivElement>(null);
+
+  // Fungsi untuk mengunduh PDF
+  const handleDownloadPDF = async () => {
+    if (!reportRef.current) return;
+
+    try {
+      // Tampilkan elemen untuk cetak sebelum mengambil gambar
+      const reportElement = reportRef.current;
+      const originalDisplay = reportElement.style.display;
+      reportElement.style.display = 'block';
+
+      // Tambahkan style sementara untuk menghasilkan PDF yang lebih baik
+      const originalStyles = {
+        overflow: reportElement.style.overflow,
+        height: reportElement.style.height,
+        maxHeight: reportElement.style.maxHeight,
+      };
+
+      reportElement.style.overflow = 'visible';
+      reportElement.style.height = 'auto';
+      reportElement.style.maxHeight = 'none';
+
+      // Ambil screenshot dari elemen
+      const canvas = await html2canvas(reportElement, {
+        scale: 4, // Tingkatkan skala untuk kualitas lebih tinggi
+        useCORS: true, // Untuk menangani masalah cross-origin
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        width: reportElement.scrollWidth,
+        height: reportElement.scrollHeight,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0); // Gunakan JPEG dengan kualitas 100%
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const imgWidth = 210; // Lebar A4 dalam mm
+      const pageHeight = 297; // Tinggi A4 dalam mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Tambahkan halaman pertama
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+
+      // Tambahkan halaman-halaman berikutnya jika diperlukan
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
+      }
+
+      // Kembalikan style semula
+      reportElement.style.display = originalDisplay;
+      reportElement.style.overflow = originalStyles.overflow;
+      reportElement.style.height = originalStyles.height;
+      reportElement.style.maxHeight = originalStyles.maxHeight;
+
+      // Simpan file PDF
+      const studentName = students.find(s => s.id === selectedStudent)?.nama_lengkap || 'siswa';
+      const fileName = `Rapor_${studentName.replace(/\s+/g, '_')}.pdf`;
+      pdf.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Terjadi kesalahan saat membuat PDF. Silakan coba lagi.');
+    }
+  };
 
   const kelasList = [...new Set(students.map((s) => s.kelas))];
   const filteredStudents = students.filter((s) => s.kelas === selectedKelas);
@@ -61,8 +140,112 @@ export default function ReportPreview() {
   console.log("subjects:", subjects.length);
   console.log("Render condition:", selectedStudent && currentStudent);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    // Pastikan konten rapor benar-benar dirender sebelum cetak
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Tambahkan event listener untuk memastikan konten siap
+    const printReportElement = reportRef.current;
+    if (printReportElement) {
+      // Force browser untuk merender ulang elemen sebelum cetak
+      printReportElement.style.visibility = 'visible';
+      printReportElement.style.display = 'block';
+    }
+
     window.print();
+  };
+
+  // Fungsi untuk membuka PDF langsung di jendela baru (untuk cetak)
+  const handleOpenPDF = async () => {
+    if (!reportRef.current) return;
+
+    try {
+      // Tampilkan elemen untuk cetak sebelum mengambil gambar
+      const reportElement = reportRef.current;
+      const originalDisplay = reportElement.style.display;
+      reportElement.style.display = 'block';
+
+      // Tambahkan style sementara untuk menghasilkan PDF yang lebih baik
+      const originalStyles = {
+        overflow: reportElement.style.overflow,
+        height: reportElement.style.height,
+        maxHeight: reportElement.style.maxHeight,
+      };
+
+      reportElement.style.overflow = 'visible';
+      reportElement.style.height = 'auto';
+      reportElement.style.maxHeight = 'none';
+
+      // Ambil screenshot dari elemen
+      const canvas = await html2canvas(reportElement, {
+        scale: 4, // Tingkatkan skala untuk kualitas lebih tinggi
+        useCORS: true, // Untuk menangani masalah cross-origin
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        width: reportElement.scrollWidth,
+        height: reportElement.scrollHeight,
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0); // Gunakan JPEG dengan kualitas 100%
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const imgWidth = 210; // Lebar A4 dalam mm
+      const pageHeight = 297; // Tinggi A4 dalam mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Tambahkan halaman pertama
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+      heightLeft -= pageHeight;
+
+      // Tambahkan halaman-halaman berikutnya jika diperlukan
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
+      }
+
+      // Kembalikan style semula
+      reportElement.style.display = originalDisplay;
+      reportElement.style.overflow = originalStyles.overflow;
+      reportElement.style.height = originalStyles.height;
+      reportElement.style.maxHeight = originalStyles.maxHeight;
+
+      // Buka PDF di jendela baru untuk dicetak
+      const pdfOutput = pdf.output('datauristring');
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <html>
+            <head>
+              <title>Preview Rapor</title>
+            </head>
+            <body style="margin:0; padding:0;">
+              <iframe
+                src="${pdfOutput}"
+                style="width:100%; height:100vh; border:none;"
+                onload="window.print();"
+              ></iframe>
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      // Jika gagal membuat PDF, gunakan fungsi print biasa
+      window.print();
+    }
   };
 
   if (isLoading) {
@@ -87,10 +270,16 @@ export default function ReportPreview() {
             </p>
           </div>
           {selectedStudent && (
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Cetak Rapor
-            </Button>
+            <>
+              <Button onClick={handleOpenPDF} className="mr-2">
+                <Printer className="mr-2 h-4 w-4" />
+                Cetak Rapor (PDF)
+              </Button>
+              <Button onClick={handleDownloadPDF}>
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
+            </>
           )}
         </div>
 
@@ -153,150 +342,145 @@ export default function ReportPreview() {
         </div>
 
         {/* Report Preview */}
-        {selectedStudent && currentStudent && (
-          <div
-            ref={reportRef}
-            className="print-report rounded-xl border border-border bg-white p-8 animate-fade-in"
-            style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}
-          >
-            {/* Kop Rapor */}
-            <div className="mb-8 border-b-2 border-gray-800 pb-4 text-center">
-              <h2 className="text-xl font-bold uppercase text-gray-900">
-                {schoolSettings?.nama_sekolah}
-              </h2>
-              <p className="text-sm text-gray-700">{schoolSettings?.alamat}</p>
-              <p className="text-sm text-gray-700">
-                {schoolSettings?.telepon && `Telp: ${schoolSettings.telepon}`}
-                {schoolSettings?.email && ` | Email: ${schoolSettings.email}`}
-              </p>
-              {schoolSettings?.website && (
-                <p className="text-sm text-gray-700">{schoolSettings.website}</p>
-              )}
-            </div>
+        {selectedStudent && currentStudent ? (
 
-            {/* Title */}
-            <div className="mb-6 text-center">
-              <h3 className="text-lg font-bold uppercase text-gray-900">
-                Laporan Hasil Belajar Peserta Didik
-              </h3>
-              <p className="text-sm text-gray-700">
-                Semester {schoolSettings?.semester === "1" ? "Ganjil" : "Genap"}{" "}
-                Tahun Pelajaran {schoolSettings?.tahun_pelajaran}
-              </p>
-            </div>
-
-            {/* Student Info */}
-            <div className="mb-6 grid gap-2 text-sm md:grid-cols-2 text-gray-800">
-              <div className="flex">
-                <span className="w-40">Nama Peserta Didik</span>
-                <span>: {currentStudent.nama_lengkap}</span>
-              </div>
-              <div className="flex">
-                <span className="w-40">Nomor Induk</span>
-                <span>: {currentStudent.nis}</span>
-              </div>
-              <div className="flex">
-                <span className="w-40">Tempat, Tanggal Lahir</span>
-                <span>
-                  : {currentStudent.tempat_lahir || "-"},{" "}
-                  {currentStudent.tanggal_lahir 
-                    ? new Date(currentStudent.tanggal_lahir).toLocaleDateString("id-ID")
-                    : "-"}
-                </span>
-              </div>
-              <div className="flex">
-                <span className="w-40">Kelas</span>
-                <span>: {currentStudent.kelas}</span>
-              </div>
-            </div>
-
-            {/* Grades Table */}
-            <div className="mb-6">
-              <h4 className="mb-3 font-semibold text-gray-900">A. Nilai Akademik</h4>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-100">
-                    <TableHead className="w-12 text-center text-gray-900">No</TableHead>
-                    <TableHead className="text-gray-900">Mata Pelajaran</TableHead>
-                    <TableHead className="w-24 text-center text-gray-900">Nilai</TableHead>
-                    <TableHead className="text-gray-900">Capaian Kompetensi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {subjects.map((subject, index) => {
-                    const grade = studentGrades.find(
-                      (g) => g.subject_id === subject.id
-                    );
-                    return (
-                      <TableRow key={subject.id} className="border-gray-200">
-                        <TableCell className="text-center text-gray-800">{index + 1}</TableCell>
-                        <TableCell className="text-gray-800">{subject.nama}</TableCell>
-                        <TableCell className="text-center font-medium text-gray-900">
-                          {grade?.nilai_akhir || "-"}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-700">
-                          {grade?.capaian_kompetensi || "-"}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Attendance */}
-            <div className="mb-6">
-              <h4 className="mb-3 font-semibold text-gray-900">B. Ketidakhadiran</h4>
-              <div className="grid gap-2 text-sm md:grid-cols-3">
-                <div className="flex rounded-lg border border-gray-300 p-3 bg-gray-50">
-                  <span className="flex-1 text-gray-700">Sakit</span>
-                  <span className="font-medium text-gray-900">{studentAttendance?.sakit || 0} hari</span>
+              <div
+                ref={reportRef}
+                className="print-report rounded-xl border border-border bg-white p-6 animate-fade-in"
+                style={{ color: '#1a1a1a', backgroundColor: '#ffffff' }}
+              >
+                {/* Kop Rapor */}
+                <div className="kop-rapor text-center mb-6" style={{paddingBottom: '10px', borderBottom: '3px double black'}}>
+                  <h2 className="text-lg font-bold uppercase" style={{margin: '0 0 4px 0'}}>
+                    {schoolSettings?.nama_sekolah}
+                  </h2>
+                  <p className="text-xs" style={{margin: '0 0 2px 0'}}>{schoolSettings?.alamat}</p>
+                  <p className="text-xs" style={{margin: '0 0 2px 0'}}>
+                    {schoolSettings?.telepon && `Telp: ${schoolSettings.telepon}`}
+                    {schoolSettings?.email && ` | Email: ${schoolSettings.email}`}
+                  </p>
+                  {schoolSettings?.website && (
+                    <p className="text-xs" style={{margin: '0'}}>{schoolSettings.website}</p>
+                  )}
                 </div>
-                <div className="flex rounded-lg border border-gray-300 p-3 bg-gray-50">
-                  <span className="flex-1 text-gray-700">Izin</span>
-                  <span className="font-medium text-gray-900">{studentAttendance?.izin || 0} hari</span>
+
+                {/* Title */}
+                <div className="text-center mb-4">
+                  <h3 className="text-base font-bold uppercase m-0">
+                    Laporan Hasil Belajar Peserta Didik
+                  </h3>
+                  <p className="text-xs m-0">
+                    Semester {schoolSettings?.semester === "1" ? "Ganjil" : "Genap"}{" "}
+                    Tahun Pelajaran {schoolSettings?.tahun_pelajaran}
+                  </p>
                 </div>
-                <div className="flex rounded-lg border border-gray-300 p-3 bg-gray-50">
-                  <span className="flex-1 text-gray-700">Tanpa Keterangan</span>
-                  <span className="font-medium text-gray-900">
-                    {studentAttendance?.tanpa_keterangan || 0} hari
-                  </span>
+
+                {/* Student Info */}
+                <div className="grid grid-cols-2 text-sm mb-4">
+                  <div className="flex mb-1">
+                    <span className="w-40">Nama Peserta Didik</span>
+                    <span>: {currentStudent.nama_lengkap}</span>
+                  </div>
+                  <div className="flex mb-1">
+                    <span className="w-40">Nomor Induk</span>
+                    <span>: {currentStudent.nis}</span>
+                  </div>
+                  <div className="flex mb-1">
+                    <span className="w-40">Tempat, Tanggal Lahir</span>
+                    <span>
+                      : {currentStudent.tempat_lahir || "-"},{" "}
+                      {currentStudent.tanggal_lahir
+                        ? new Date(currentStudent.tanggal_lahir).toLocaleDateString("id-ID")
+                        : "-"}
+                    </span>
+                  </div>
+                  <div className="flex mb-1">
+                    <span className="w-40">Kelas</span>
+                    <span>: {currentStudent.kelas}</span>
+                  </div>
+                </div>
+
+                {/* Grades Header */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>A. Nilai Akademik</h4>
+
+                {/* Grades Table */}
+                <table className="w-full border border-gray-300 border-collapse mb-4">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-center" style={{width: '5%'}}>No</th>
+                      <th className="border border-gray-300 p-2" style={{width: '55%'}}>Mata Pelajaran</th>
+                      <th className="border border-gray-300 p-2 text-center" style={{width: '15%'}}>Nilai</th>
+                      <th className="border border-gray-300 p-2" style={{width: '25%'}}>Capaian Kompetensi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {subjects.map((subject, index) => {
+                      const grade = studentGrades.find((g) => g.subject_id === subject.id);
+                      return (
+                        <tr key={subject.id}>
+                          <td className="border border-gray-300 p-2 text-center">{index + 1}</td>
+                          <td className="border border-gray-300 p-2">{subject.nama}</td>
+                          <td className="border border-gray-300 p-2 text-center font-medium">
+                            {grade?.nilai_akhir || "-"}
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            {grade?.capaian_kompetensi || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Attendance */}
+                <h4 className="font-semibold mb-2" style={{margin: '16px 0 8px 0'}}>B. Ketidakhadiran</h4>
+                <table className="w-full border border-gray-300 border-collapse mb-8">
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 p-2 w-1/4">Sakit</td>
+                      <td className="border border-gray-300 p-2 w-1/4">{studentAttendance?.sakit || 0} hari</td>
+                      <td className="border border-gray-300 p-2 w-1/4">Izin</td>
+                      <td className="border border-gray-300 p-2 w-1/4">{studentAttendance?.izin || 0} hari</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 p-2">Tanpa Keterangan</td>
+                      <td className="border border-gray-300 p-2">{studentAttendance?.tanpa_keterangan || 0} hari</td>
+                      <td className="border border-gray-300 p-2"></td>
+                      <td className="border border-gray-300 p-2"></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Signatures */}
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="text-center">
+                    <p className="mb-8">Mengetahui,</p>
+                    <p className="mb-8">Orang Tua/Wali</p>
+                    <p className="border-b border-gray-800" style={{width: '70%', margin: 'auto'}}></p>
+                  </div>
+                  <div className="text-center">
+                    <p className="mb-1">
+                      Jakarta,{" "}
+                      {new Date().toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                    <p className="mb-8">Wali Kelas</p>
+                    <p className="font-medium">{currentStudent.nama_wali_kelas || "-"}</p>
+                  </div>
+                </div>
+
+                <div className="text-center mt-12">
+                  <p className="mb-2">Mengetahui,</p>
+                  <p className="mb-8">Kepala Sekolah</p>
+                  <p className="font-medium">{schoolSettings?.nama_kepala_sekolah}</p>
+                  <p className="text-sm">NIP. {schoolSettings?.nip_kepala_sekolah}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Signatures */}
-            <div className="mt-12 grid gap-8 text-center md:grid-cols-2 text-gray-800">
-              <div>
-                <p className="mb-16">Mengetahui,</p>
-                <p className="mb-16">Orang Tua/Wali</p>
-                <p className="border-b border-gray-800"></p>
-              </div>
-              <div>
-                <p className="mb-2">
-                  Jakarta,{" "}
-                  {new Date().toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
-                <p className="mb-16">Wali Kelas</p>
-                <p className="font-medium text-gray-900">{currentStudent.nama_wali_kelas || "-"}</p>
-              </div>
-            </div>
-
-            <div className="mt-12 text-center text-gray-800">
-              <p className="mb-2">Mengetahui,</p>
-              <p className="mb-16">Kepala Sekolah</p>
-              <p className="font-medium text-gray-900">{schoolSettings?.nama_kepala_sekolah}</p>
-              <p className="text-sm text-gray-700">NIP. {schoolSettings?.nip_kepala_sekolah}</p>
-            </div>
-          </div>
-        )}
-
-        {!selectedStudent && (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 py-16 no-print">
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 py-16 no-print">
             <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-muted-foreground">
               Pilih kelas dan siswa untuk melihat preview rapor
